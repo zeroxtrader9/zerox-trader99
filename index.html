@@ -1,94 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Trader Dashboard - S&R Edition</title>
-    <style>
-        body { background: #06090f; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; }
-        .header { text-align: center; padding: 15px; background: #111827; border-bottom: 3px solid #00d4ff; margin-bottom: 20px; }
-        .main-container { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; max-width: 1400px; margin: auto; }
-        .card { background: #111827; border-radius: 12px; padding: 15px; border: 1px solid #1f2937; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        h2 { color: #00d4ff; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .timer { font-size: 24px; color: #ffeb3b; text-align: center; margin-bottom: 10px; font-weight: bold; }
-        @media (max-width: 900px) { .main-container { grid-template-columns: 1fr; } }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <h1>🎯 PRO-AI TRADING TERMINAL</h1>
-    <p>Real-Time Support, Resistance & 1-Min Scalping</p>
-</div>
-
-<div class="main-container">
-    <div class="card">
-        <h2>📊 Live Analysis Chart (Auto-S&R)</h2>
-        <div id="tradingview_advanced" style="height: 550px;"></div>
-    </div>
-
-    <div class="card">
-        <div class="timer" id="timer">Next Candle: 00:60</div>
-        
-        <h2>🤖 AI Signal Meter (1m)</h2>
-        <div class="tradingview-widget-container" style="height: 350px;">
-            <div class="tradingview-widget-container__widget"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
-            {
-                "interval": "1m",
-                "width": "100%",
-                "height": "100%",
-                "symbol": "FX:EURUSD",
-                "showIntervalTabs": false,
-                "displayMode": "single",
-                "locale": "en",
-                "colorTheme": "dark"
-            }
-            </script>
-        </div>
-
-        <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 15px;">
-            <h2 style="color: #ff4444;">🛡️ Trading Rules:</h2>
-            <ul style="font-size: 12px; color: #9ca3af; line-height: 1.6;">
-                <li>Don't Buy at <b>Resistance</b> (Red Line).</li>
-                <li>Don't Sell at <b>Support</b> (Green Line).</li>
-                <li>Wait for <b>Strong Buy/Sell</b> + S&R Bounce.</li>
-            </ul>
-        </div>
-    </div>
-</div>
-
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script type="text/javascript">
-  // Advanced Chart with Indicators
-  new TradingView.widget({
-    "autosize": true,
-    "symbol": "FX:EURUSD",
-    "interval": "1",
-    "timezone": "Etc/UTC",
-    "theme": "dark",
-    "style": "1",
-    "locale": "en",
-    "toolbar_bg": "#f1f3f6",
-    "enable_publishing": false,
-    "withdateranges": true,
-    "hide_side_toolbar": false,
-    "allow_symbol_change": true,
-    "details": true,
-    "hotlist": true,
-    "calendar": true,
-    "container_id": "tradingview_advanced"
-  });
+    // Advanced Chart
+    new TradingView.widget({
+        "autosize": true, "symbol": "FX:EURUSD", "interval": "1", "theme": "dark", "style": "1",
+        "container_id": "chart_container", "hide_side_toolbar": false, "allow_symbol_change": true,
+        "studies": [ "RSI@tv-basicstudies", "StochasticRSI@tv-basicstudies", "PivotPointsHighLow@tv-basicstudies" ]
+    });
 
-  // Simple Candle Timer
-  function startTimer() {
-      setInterval(function() {
-          var seconds = 60 - new Date().getSeconds();
-          if (seconds == 60) seconds = 0;
-          document.getElementById('timer').innerText = "Next Candle: 00:" + (seconds < 10 ? "0" : "") + seconds;
-      }, 1000);
-  }
-  startTimer();
+    // Precision Timer & News Sim
+    function startEngine() {
+        setInterval(() => {
+            let now = new Date();
+            let s = 60 - now.getSeconds();
+            if (s == 60) s = 0;
+            let timerEl = document.getElementById('timer');
+            timerEl.innerText = "00:" + (s < 10 ? "0" : "") + s;
+            
+            // Last 5 seconds alert
+            if(s <= 5 && s > 0) {
+                timerEl.style.color = "var(--danger)";
+            } else if(s == 0) {
+                timerEl.style.color = "var(--success)";
+                timerEl.innerText = "TRADE NOW!";
+            } else {
+                timerEl.style.color = "var(--neon)";
+            }
+
+            // News Alert Simulation
+            if(now.getMinutes() % 15 == 0) {
+                document.getElementById('news-alert').innerText = "🔴 NEWS: HIGH VOLATILITY - WAIT!";
+                document.getElementById('news-alert').style.color = "var(--danger)";
+            } else {
+                document.getElementById('news-alert').innerText = "🟢 NEWS: NO VOLATILITY";
+                document.getElementById('news-alert').style.color = "var(--success)";
+            }
+        }, 1000);
+    }
+
+    function calcRec() {
+        let loss = document.getElementById('lastLoss').value;
+        if(loss) document.getElementById('recVal').innerText = "Next Trade: $" + (loss * 2.25).toFixed(2);
+    }
+    
+    startEngine();
 </script>
 
 </body>
